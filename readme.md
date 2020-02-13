@@ -106,11 +106,11 @@ Example:
 
     |        |
     +--------+
-    |  AND   | <-- Current Opcode 
+    |  AND   | PC     <-- Current Opcode 
     +--------+
-    | 0x0012 | <-- The memory location of the value
+    | 0x0012 | PC + 1 <-- The memory location of the value
     +--------+
-    | .....  | <-- The next Opcode
+    | ...... | PC + 2 <-- The next Opcode
     +--------+
     |        |
 
@@ -138,11 +138,70 @@ Example:
 
     |        |
     +--------+
-    |  AND   | <-- Current Opcode 
+    |  AND   | PC     <-- Current Opcode 
     +--------+
-    | 0x0012 | <-- The memory location of the value
+    | 0x0012 | PC + 1 <-- The memory location of the value
     +--------+
-    | .....  | <-- The next Opcode
+    | ...... | PC + 2 <-- The next Opcode
+    +--------+
+    |        |
+
+### Absolute
+
+In absolute addressing, the address of the data to operate on is specified by the two operands supplied, least significant byte first.
+
+
+Example:
+
+    Instruction: AND 0x1234
+
+    address = (RAM[PC + 2] << 8) | RAM[PC + 1];
+    A &= RAM[address];
+    ...
+    PC += 3;
+
+    |        |
+    +--------+
+    |  AND   | PC     <-- Current Opcode 
+    +--------+
+    | 0x0034 | PC + 1 <-- The least significant byte
+    +--------+
+    | 0x0012 | PC + 2 <-- The most significant byte
+    +--------+
+    | ...... | PC + 3 <-- The next Opcode
+    +--------+
+    |        |
+
+### Indexed Absolute
+
+Indexed absolute addressing takes two operads, forming a 16-bit address (just like absolute addressing). The difference is that we sum the value a register to calculate the final address.
+
+There are two forms of indexed absolute addressing
+
+- Absolute, X - Add contents of X register to operand.
+
+- Absolute, Y - Add contents of Y register to operand.
+
+
+Example:
+
+    Instruction: AND 0x1234, X
+
+
+    address = (RAM[PC + 2] << 8) | RAM[PC + 1];
+    A &= RAM[address + X];
+    ...
+    PC += 3;
+
+    |        |
+    +--------+
+    |  AND   | PC     <-- Current Opcode 
+    +--------+
+    | 0x0034 | PC + 1 <-- The least significant byte
+    +--------+
+    | 0x0012 | PC + 2 <-- The most significant byte
+    +--------+
+    | ...... | PC + 3 <-- The next Opcode
     +--------+
     |        |
 
