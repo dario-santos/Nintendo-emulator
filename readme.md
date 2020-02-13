@@ -52,3 +52,5 @@ Then the game clears the RAM, and waits for the NES to warm up some more. Then t
 
 - https://wiki.nesdev.com/w/index.php/
 - http://www.thealmightyguru.com/Games/Hacking/Wiki/index.php/6502_Opcodes
+- http://www.6502.org/tutorials/6502opcodes.html
+- https://www.masswerk.at/6502/6502_instruction_set.html

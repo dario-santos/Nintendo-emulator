@@ -1,5 +1,6 @@
 import os
 import memory as mem
+import config
 
 # ROM iNES - Super Mario (E)
 #
@@ -28,7 +29,7 @@ def load_file(rom):
 
     # Read Header
     header = []
-    for i in range(16):
+    for i in range(0x10):
       header.append(int.from_bytes(rom.read(1), "big"))
             
     # Identifies the ROM format
@@ -39,12 +40,14 @@ def load_file(rom):
     else:
       rom_type = 2
 
-    print(header)
+    # if trainer_is_present: skip 0x200 bytes
+    config.prg_start = 0x210 if header[0x6] & 0b00000100 else 0x010
+ 
+    for i in range(0x10, config.prg_start):
+      mem.memory[i] = int.from_bytes(rom.read(1), "big")
     
-    crtg = []
-
-    for i in range(16, rom_length):
-      crtg.append(int.from_bytes(rom.read(1), "big"))
+    for i in range(config.prg_start, config.prg_start + 0x4000):
+      mem.memory[i] = int.from_bytes(rom.read(1), "big")
 
 def is_ines(header):
   if header[0x7] & 0x0C == 0x00:
@@ -55,5 +58,3 @@ def is_ines(header):
 
 def is_nes2(header):
   return True if header[0x7] & 0x0C == 0x08 and header[0x9] < len(header) else False
-
-load_file('SuperMarioBros(E).nes')

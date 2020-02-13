@@ -33,3 +33,8 @@ def initialize():
     global memory
 
     memory = [0] * 0x10000
+
+def debug():
+    global memory
+
+    print(memory)
