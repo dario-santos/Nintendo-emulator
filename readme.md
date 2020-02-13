@@ -1,8 +1,38 @@
 # Nintendo Emulator
 
-## CPU
+## 1. CPU
 
-### CPU Registers
+### 1.1 CPU Memory Map
+
+The following diagram illustrates the CPU memory map
+
+    +-------------+ 0x10000
+    |   PRG-ROM   |
+    |  Upper Bank |
+    |- - - - - - -| 0xC000
+    |   PRG-ROM   |
+    |  Lower Bank |
+    +-------------+ 0x8000
+    |    SRAM     |
+    +-------------+ 0x6000
+    |Expansion ROM|
+    +-------------+ 0x4020
+    |I/O Registers|
+    |- - - - - - -| 0x4000
+    |   Mirrors   |
+    |- - - - - - -| 0x2008
+    |I/O Registers|
+    +-------------+ 0x2000
+    |   Mirrors   |
+    |- - - - - - -| 0x0800
+    |     RAM     |
+    |- - - - - - -| 0X0200
+    |    Stack    |
+    |- - - - - - -| 0x0100
+    | Zero Page   |
+    +-------------+ 0x0000
+
+### 1.2 CPU Registers
 
 Unlike many CPUs that have a group of registers, like CHIP8 that has 16 registers, the NES cpu does not have them, instead it has:
 
@@ -21,8 +51,44 @@ Unlike many CPUs that have a group of registers, like CHIP8 that has 16 register
 | S          | 8          |
 | P          | 8          |
 
+## 1.2.1 Accumulator - A
+
+The accumulator is an 8-bit register that stores the results of arithmetic and logic operations.
+
+## 1.2.2 Index Registers - X, Y
+
+The X and Y registers are both 8-bit.
+
+## 1.2.3 Program Counter - PC
+
+The program counter is a 16-bit register wich holds the address of the **next** instruction to be executed.
+
+## 1.2.4 Stack Pointer - S
+
+The stack is located between the memory locations 0x0100 to 0x01FF ( This can be visualized in the diagram CPU Memory Map).
+
+The stack pointer is an 8-bit register, the stack works top-down wich means that when a byte is pushed the stack pointer is incremented. There is no overflow, the stack pointer will wrap around from 0x0100 to 0x01FF.
+
+## 1.2.5 Status Register - P
+
 Six of the eigth bits of the status register (**P**) are used by the arithmetic logic unit (**ALU**).
 
+The 8-bits of the status register follow structure:
+
+    +-+-+-+-+-+-+-+-+ 
+    |N|V| |B|D|I|Z|C|
+    +-+-+-+-+-+-+-+-+
+     7 6 5 4 3 2 1 0
+
+Description:
+
+C - Carry Flag        <br>
+Z - Zero Flag         <br>
+I - Interrupt Disable <br>
+D - Decimal Mode      <br>
+B - Break Command     <br>
+V - Overflow Flag     <br>
+N - Negative Flag 
 
 ## Roms
 
