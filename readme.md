@@ -90,6 +90,62 @@ B - Break Command     <br>
 V - Overflow Flag     <br>
 N - Negative Flag 
 
+## Addressing Modes of the 6502
+
+### Zero Page
+
+Zero page addressing uses a single operand wich serves as a pointer to an address in zero page (0x0000 to 0x00FF).
+
+Example:
+
+    Instruction: AND 0x12
+
+    A &= RAM[PC + 1];
+    ...
+    PC += 2;
+
+    |        |
+    +--------+
+    |  AND   | <-- Current Opcode 
+    +--------+
+    | 0x0012 | <-- The memory location of the value
+    +--------+
+    | .....  | <-- The next Opcode
+    +--------+
+    |        |
+
+
+### Indexed Zero Page
+
+Indexed zero page addressing takes a single operand and adds the value of a register to calculate the zero page address.
+
+There are two forms of indexed zero page addressing:
+
+- Zero Page, X - Add contents of X register to operand.
+
+- Zero Page, Y - Add contents of Y register to operand.
+
+The wrap technique is used to assure that the sum will not exceed the zero page addresses. In other words, 0x0001 + 0x00FF = 0x0000 instead of 0x0100.
+
+Example:
+
+    Instruction: AND 0x12, X
+
+
+    A &= RAM[PC + 1 + X];
+    ...
+    PC += 2;
+
+    |        |
+    +--------+
+    |  AND   | <-- Current Opcode 
+    +--------+
+    | 0x0012 | <-- The memory location of the value
+    +--------+
+    | .....  | <-- The next Opcode
+    +--------+
+    |        |
+
 ## Roms
 
 There are a few type of formats, iNES, NES2 and others.
