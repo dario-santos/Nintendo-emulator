@@ -49,3 +49,13 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] Absolute, Y
 - [X] (Indirect, X)
 - [x] (Indirect), Y
+
+### Tranfers
+
+- [X] TYA
+- [X] TXS
+- [X] TXA
+- [X] TSX
+- [X] TAY
+- [X] TAX
+

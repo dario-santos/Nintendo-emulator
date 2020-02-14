@@ -51,14 +51,28 @@ def initialize():
 
 def cycle():
   global PC, opcode
-  debug()
   opcode = mem.memory[PC]
+  debug()
   decode(opcode)
 
 def decode(opcode):
   global A, X, Y, PC, S, P
 
-  if opcode == 0x18: # CLC - Clear Carry Flag
+  if opcode == 0x10: # BPL - Branch on Result Plus
+    # branch on N = 0 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BPL oper      10    2     2**
+    
+    if not (P & 0b1000_0000):
+      PC = mem.memory[PC + 1]
+    else:
+      PC += 2
+
+  elif opcode == 0x18: # CLC - Clear Carry Flag
 
     # 0 -> C
     #  |N|V| |B|D|I|Z|C|
@@ -186,6 +200,23 @@ def decode(opcode):
     
     PC += 2
 
+  elif opcode == 0x8A: # TSX - Transfer Stack Pointer to Index X
+    # SP -> X
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TSX           BA    1     2
+
+    X = SP
+    x &= 0xFF
+
+    set_negative_flag(X)
+    set_zero_flag(X)
+    
+    PC += 1
+
   elif opcode == 0x98: # TXA  Transfer Index X to Accumulator
     # X -> A
     #  |N|V| |B|D|I|Z|C|
@@ -287,6 +318,7 @@ def decode(opcode):
     #   implied       TXS           9A    1     2
 
     S = X
+    S |= 0x0100
     
     PC += 1
 
@@ -356,6 +388,22 @@ def decode(opcode):
 
     PC += 2
 
+  elif opcode == 0xA8: # TAY - Transfer Accumulator to Index Y
+    # A -> Y
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TAY           A8    1     2
+
+    Y = A
+
+    set_negative_flag(Y)
+    set_zero_flag(Y)
+    
+    PC += 1
+
   elif opcode == 0xA9: # LDA - Load Accumulator With Memory
     # M -> A                           
     # |N|V| |B|D|I|Z|C|
@@ -371,6 +419,22 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
+
+  elif opcode == 0xAA: # TAX - Transfer Accumulator to Index X
+    # A -> X
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TAX           AA    1     2
+
+    X = A
+
+    set_negative_flag(X)
+    set_zero_flag(X)
+    
+    PC += 1
 
   elif opcode == 0xAD: # LDA - Load Accumulator With Memory
     # M -> A                           
