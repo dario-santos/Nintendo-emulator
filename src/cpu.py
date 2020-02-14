@@ -105,19 +105,6 @@ def decode(opcode):
 
     PC += 3
 
-  elif opcode == 0x48: # PHA - Push Accumulator on Stack
-    # push A
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       PHA          48    1     3
-
-    s_push(A)
-
-    PC += 1
-
   elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
@@ -315,6 +302,474 @@ def decode(opcode):
     set_decimal_flag(0b0)
 
     PC += 1
+
+## No Operation
+  elif opcode == 0xEA: # CLD - Clear Decimal Mode
+    # ---
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - 0 - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       NOP           EA    1     2
+
+    PC += 1
+
+## OR Memory with Accumulator
+
+  elif opcode == 0x09: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     ORA #oper     09    2     2
+ 
+    A |= mem.memory[PC + 1]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x05: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      ORA oper      05    2     32
+    loc = mem.memory[PC + 1]
+    A |= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x15: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    ORA oper,X    15    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+    A |= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x0D: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      ORA oper      0D    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A |= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x1D: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    ORA oper,X    1D    3     4* 4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A |= mem.memory[loc + X]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x19: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,Y    ORA oper,Y    19    3     4*
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A |= mem.memory[loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x01: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect,X)  ORA (oper,X)  01    2     6
+
+    loc = mem.memory[PC + 1] + X
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc & 0xFF]
+    A |= mem.memory[real_loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x11: # ORA - OR Memory with Accumulator
+    # A OR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect),Y  ORA (oper),Y  11    2     5*
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[(loc + 1) 0xFF] << 8) | mem.memory[loc]
+    A |= mem.memory[real_loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+
+## Pull/Push from Stack
+  elif opcode == 0x48: # PHA - Push Accumulator on Stack
+    # push A
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PHA          48    1     3
+
+    s_push(A)
+
+    PC += 1
+  
+  elif opcode == 0x08: # PHP - Push Processor Status on Stack
+    # push SR
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PHP          08    1     3
+
+    s_push(P)
+
+    PC += 1
+
+  elif opcode == 0x68: # PLA - Pull Accumulator from Stack
+    # pull A
+    #  |N|V| |B|D|I|Z|C|
+    #   + - - - - - + -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PLA           68    1     4
+
+    A = s_pull()
+
+    set_negative_flag(A)
+    set_zero_flag(A)
+
+    PC += 1
+
+  elif opcode == 0x28: # PLP - Pull Processor Status from Stack
+    # pull SR
+    #  |N|V| |B|D|I|Z|C|
+    #   from stack
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PLP           28    1     4
+
+    P = s_pull()
+
+    PC += 1
+
+## Rotations
+
+## ----
+
+## Return from
+  elif opcode == 0x40: # RTI - Return from Interrupt
+    # pull PC
+    # PC+1 -> PC   
+    #  |N|V| |B|D|I|Z|C|
+    #   from stack
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       RTI           40    1     6
+
+    P = s_pull()
+    PC = s_pull()
+
+  elif opcode == 0x60: # RTS - Return from Subroutine
+    # pull PC
+    # PC+1 -> PC   
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       RTS           60    1     6
+
+    s_pull(PC)
+
+    PC += 1
+
+## Subtract Memory from Accumulator with Borrow
+  elif opcode == 0xE9: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   immidiate     SBC #oper     E9    2     2
+
+    # Overflow Flag
+    set_overflow((A - mem.memory[PC + 1] - (P & 0b1)), A, mem.memory[PC + 1])
+
+    # Carry Flag and operations
+    if A - mem.memory[PC + 1] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[PC + 1] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xE5: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      SBC oper      E5    2     3
+
+    # Overflow Flag
+    loc = mem.memory[PC + 1]
+    set_overflow((A - mem.memory[loc] - (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xF5: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,X    SBC oper,X    F5    2     4
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    set_overflow((A - mem.memory[loc] - (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xED: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      SBC oper      ED    3     4
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    set_overflow((A - mem.memory[loc] - (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xFD: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,X    SBC oper,X    FD    3     4*
+
+    # Overflow Flag
+    loc = ((mem.memory[PC + 2] << 8) | mem.memory[PC + 1]) + X
+    set_overflow((A - mem.memory[loc] - (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xF9: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,Y    SBC oper,Y    F9    3     4*
+
+    # Overflow Flag
+    loc = ((mem.memory[PC + 2] << 8) | mem.memory[PC + 1]) + Y
+    set_overflow((A - mem.memory[loc] - (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xE1: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect,X)  SBC (oper,X)  E1    2     6
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 1] + X)
+    real_loc = ((mem.memory[(loc + 1) & 0x00FF] << 8) | mem.memory[loc & 0x00FF])
+    
+    set_overflow((A - mem.memory[real_loc] - (P & 0b1)), A, mem.memory[real_loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[real_loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[real_loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xF1: # SBC - Subtract Memory from Accumulator with Borrow
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect),Y  SBC (oper),Y  F1    2     5*
+
+    # Overflow Flag
+    loc = mem.memory[PC + 1]
+    real_loc = ((mem.memory[loc + 1] << 8) | mem.memory[loc]) + Y
+    
+    set_overflow((A - mem.memory[real_loc] - (P & 0b1)), A, mem.memory[real_loc])
+
+    # Carry Flag and operations
+    if A - mem.memory[real_loc] - (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A -= mem.memory[real_loc] - (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
 
 ## Set Flags
   elif opcode == 0x38: # SEC - Set Carry Flag

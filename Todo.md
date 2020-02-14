@@ -40,7 +40,39 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] (Indirect, X)
 - [X] (Indirect), Y
 
-### Set Flags
+
+### No Operation
+
+- [X] NOP
+
+### OR Memory with Accumulator
+
+- [X] ORA
+
+### Pull/Push from Stack
+
+- [X] PHA
+- [X] PHP
+- [X] PLA
+- [X] PLP
+
+### Return From
+
+- [X] RTI
+- [X] RTS
+
+### Subtract Memory From Accumulator With Borrow
+
+- [X] Immediate
+- [X] Zero Page
+- [X] Zero Page, X
+- [X] Absolute
+- [X] Absolute, X
+- [X] Absolute, Y
+- [X] (Indirect, X)
+- [X] (Indirect), Y
+
+### Set Flags 
 
 - [X] SEC
 - [X] SED
@@ -60,4 +92,3 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] TSX
 - [X] TAY
 - [X] TAX
-
