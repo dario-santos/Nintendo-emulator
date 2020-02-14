@@ -68,7 +68,8 @@ def decode(opcode):
     #   relative      BPL oper      10    2     2**
     
     if not (P & 0b1000_0000):
-      PC = mem.memory[PC + 1]
+      PC &= 0xFF00 
+      PC |= mem.memory[PC + 1]
     else:
       PC += 2
 
@@ -103,19 +104,6 @@ def decode(opcode):
     PC = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
 
     PC += 3
-
-  elif opcode == 0x38: # SEC - Set Carry Flag
-    # 1 -> C
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - 1
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       CLC           18    1     2
-    
-    set_carry_flag(0xFF)
-
-    PC += 1
 
   elif opcode == 0x48: # PHA - Push Accumulator on Stack
     # push A
@@ -159,184 +147,6 @@ def decode(opcode):
 
     PC += 2
   
-  elif opcode == 0x78: # SEI - Set Interrupt Disable Status
-    # 1 -> I                           
-    # |N|V| |B|D|I|Z|C|
-    #  - - - - - 1 - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # implied       SEI           78    1     2
-
-    set_interrupt_flag(0xFF)
-
-    PC += 1
-
-  elif opcode == 0x81: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   (indirect,X)  STA (oper,X)  81    2     6
-
-    loc = mem.memory[PC + 1]
-    real_loc = (mem.memory[loc + X + 1] << 8) | mem.memory[loc + X]
-    mem.memory[real_loc] = A
-    
-    PC += 2
-
-  elif opcode == 0x85: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   zeropage      STA oper      85    2     3
-
-    mem.memory[PC + 1] = A
-    
-    PC += 2
-
-  elif opcode == 0x8A: # TSX - Transfer Stack Pointer to Index X
-    # SP -> X
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TSX           BA    1     2
-
-    X = SP
-    x &= 0xFF
-
-    set_negative_flag(X)
-    set_zero_flag(X)
-    
-    PC += 1
-
-  elif opcode == 0x98: # TXA  Transfer Index X to Accumulator
-    # X -> A
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TYA           98    1     2
-
-    A = X
-
-    set_negative_flag(A)
-    set_zero_flag(A)
-    
-    PC += 1
-
-  elif opcode == 0x8D: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute      STA oper      8D    3     4
-
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    mem.memory[loc] = A
-    
-    PC += 3
-
-  elif opcode == 0x91: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   (indirect),Y  STA (oper),Y  91    2     6
-
-    loc = mem.memory[PC + 1]
-    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
-    mem.memory[real_loc + Y] = A
-    
-    PC += 2
-
-  elif opcode == 0x95: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   zeropage,X    STA oper,X    95    2     4
-
-    mem.memory[(PC + 1 + X) & 0xFF] = A
-    
-    PC += 2
-
-  elif opcode == 0x98: # TYA - Transfer Index Y to Accumulator
-    # Y -> A
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TYA           98    1     2
-
-    A = Y
-
-    set_negative_flag(A)
-    set_zero_flag(A)
-    
-    PC += 1
-
-  elif opcode == 0x99: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute,Y    STA oper,Y    99    3     5
-
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    mem.memory[loc + Y] = A
-    
-    PC += 3
-
-  elif opcode == 0x9A: # TXS - Transfer Index X to Stack Register
-
-    # X -> SP
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TXS           9A    1     2
-
-    S = X
-    S |= 0x0100
-    
-    PC += 1
-
-  elif opcode == 0x9D: # STA - Store Accumulator in Memory
-    # A -> M
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute,X    STA oper,X    9D    3     5
-
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    mem.memory[loc + X] = A
-    
-    PC += 3
-
   elif opcode == 0xA1: # LDA - Load Accumulator With Memory
     # M -> A                           
     # |N|V| |B|D|I|Z|C|
@@ -388,22 +198,6 @@ def decode(opcode):
 
     PC += 2
 
-  elif opcode == 0xA8: # TAY - Transfer Accumulator to Index Y
-    # A -> Y
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TAY           A8    1     2
-
-    Y = A
-
-    set_negative_flag(Y)
-    set_zero_flag(Y)
-    
-    PC += 1
-
   elif opcode == 0xA9: # LDA - Load Accumulator With Memory
     # M -> A                           
     # |N|V| |B|D|I|Z|C|
@@ -419,22 +213,6 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
-
-  elif opcode == 0xAA: # TAX - Transfer Accumulator to Index X
-    # A -> X
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       TAX           AA    1     2
-
-    X = A
-
-    set_negative_flag(X)
-    set_zero_flag(X)
-    
-    PC += 1
 
   elif opcode == 0xAD: # LDA - Load Accumulator With Memory
     # M -> A                           
@@ -538,6 +316,310 @@ def decode(opcode):
 
     PC += 1
 
+## Set Flags
+  elif opcode == 0x38: # SEC - Set Carry Flag
+    # 1 -> C
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - 1
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       SEC           38    1     2
+    
+    set_carry_flag(0xFF)
+
+    PC += 1
+
+  elif opcode == 0xF8: # SED - Set Decimal Flag
+    # 1 -> D
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - 1 - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       SED          F8    1     2
+
+    set_decimal_flag(0xFF)
+
+    PC += 1
+
+  elif opcode == 0x78: # SEI - Set Interrupt Disable Status
+    # 1 -> I                           
+    # |N|V| |B|D|I|Z|C|
+    #  - - - - - 1 - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # implied       SEI           78    1     2
+
+    set_interrupt_flag(0xFF)
+
+    PC += 1
+
+## STORES IN MEMORY
+  elif opcode == 0x81: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect,X)  STA (oper,X)  81    2     6
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[loc + X + 1] << 8) | mem.memory[loc + X]
+    mem.memory[real_loc] = A
+    
+    PC += 2
+  elif opcode == 0x85: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      STA oper      85    2     3
+
+    mem.memory[PC + 1] = A
+    
+    PC += 2
+  elif opcode == 0x8D: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      STA oper      8D    3     4
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] = A
+    
+    PC += 3
+  elif opcode == 0x91: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect),Y  STA (oper),Y  91    2     6
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
+    mem.memory[real_loc + Y] = A
+    
+    PC += 2
+  elif opcode == 0x95: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,X    STA oper,X    95    2     4
+
+    mem.memory[(PC + 1 + X) & 0xFF] = A
+    
+    PC += 2
+  elif opcode == 0x99: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,Y    STA oper,Y    99    3     5
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + Y] = A
+    
+    PC += 3
+  elif opcode == 0x9D: # STA - Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,X    STA oper,X    9D    3     5
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + X] = A
+    
+    PC += 3
+
+  elif opcode == 0x86: # STX - Store Index X in Memory
+    # X -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      STX oper      86    2     3
+
+    mem.memory[PC + 1] = X
+    
+    PC += 2
+  elif opcode == 0x96: # STX - Store Index X in Memory
+    # X -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,Y    STX oper,Y    96    2     4
+
+    mem.memory[(PC + 1 + Y) & 0xFF] = X
+    
+    PC += 2
+  elif opcode == 0x8E: # STX - Store Index X in Memory
+    # X -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      STX oper      8E    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] = X
+    
+    PC += 3
+
+  elif opcode == 0x84: # STY - Sore Index Y in Memory
+    # Y -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      STY oper      84    2     3
+
+    mem.memory[PC + 1] = Y
+    
+    PC += 2
+  elif opcode == 0x94: # STY - Sore Index Y in Memory
+    # Y -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,X    STY oper,X    94    2     4
+
+    mem.memory[(PC + 1 + X) & 0xFF] = Y
+    
+    PC += 2
+  elif opcode == 0x8C: # STY - Sore Index Y in Memory
+    # Y -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      STY oper      8C    3     4
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] = Y
+    
+    PC += 3
+
+## TRANFERS
+  elif opcode == 0xAA: # TAX - Transfer Accumulator to Index X
+    # A -> X
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TAX           AA    1     2
+
+    X = A
+
+    set_negative_flag(X)
+    set_zero_flag(X)
+    
+    PC += 1
+  elif opcode == 0xA8: # TAY - Transfer Accumulator to Index Y
+    # A -> Y
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TAY           A8    1     2
+
+    Y = A
+
+    set_negative_flag(Y)
+    set_zero_flag(Y)
+    
+    PC += 1
+  elif opcode == 0x8A: # TSX - Transfer Stack Pointer to Index X
+    # SP -> X
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TSX           BA    1     2
+
+    X = SP
+    x &= 0xFF
+
+    set_negative_flag(X)
+    set_zero_flag(X)
+    
+    PC += 1
+  elif opcode == 0x98: # TXA - Transfer Index X to Accumulator
+    # X -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TYA           98    1     2
+
+    A = X
+
+    set_negative_flag(A)
+    set_zero_flag(A)
+    
+    PC += 1
+  elif opcode == 0x9A: # TXS - Transfer Index X to Stack Register
+
+    # X -> SP
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TXS           9A    1     2
+
+    S = X
+    S |= 0x0100
+    
+    PC += 1
+  elif opcode == 0x98: # TYA - Transfer Index Y to Accumulator
+    # Y -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TYA           98    1     2
+
+    A = Y
+
+    set_negative_flag(A)
+    set_zero_flag(A)
+    
+    PC += 1
   else:
     print('The opcode', hex(opcode) , ' is not implemented.')
     exit(-1)
@@ -588,8 +670,8 @@ def set_negative_flag(value):
 # Stack Pointer
 def s_push(value):
   global S
-  S = ((S + 0x1) & 0x00FF) | 0x0100
   mem.memory[S] = value
+  S = ((S + 0x1) & 0x00FF) | 0x0100
 
 def s_pull():
   global S

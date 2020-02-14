@@ -38,17 +38,19 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] Absolute, X
 - [X] Absolute, Y
 - [X] (Indirect, X)
-- [x] (Indirect), Y
+- [X] (Indirect), Y
 
-### STA
+### Set Flags
 
-- [X] Zero Page
-- [X] Zero Page, X
-- [X] Absolute
-- [X] Absolute, X
-- [X] Absolute, Y
-- [X] (Indirect, X)
-- [x] (Indirect), Y
+- [X] SEC
+- [X] SED
+- [X] SEI
+
+### Store In Memory
+
+- [X] STA (zeropage; zeropage, X; absolute; absolute, X; absolute, Y; (indirect, X); (indirect), Y
+- [X] STX (zeropage; zeropage, Y; absolute)
+- [X] STY (zeropage; zeropage, X; absolute)
 
 ### Tranfers
 

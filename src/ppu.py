@@ -55,4 +55,9 @@ colour_palette = [
 #  +----------------+ 0x0000
 #
 
-vram
+vram = [0] * 0x10000
+
+def initialize():
+    global vram
+
+    vram = [0] * 0x10000

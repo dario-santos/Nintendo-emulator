@@ -243,6 +243,11 @@ Example:
     +--------+
     |        |
 
+
+
+
+## 2. PPU
+
 ## Roms
 
 There are a few type of formats, iNES, NES2 and others.
