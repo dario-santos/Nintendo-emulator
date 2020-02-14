@@ -69,6 +69,8 @@ The stack is located between the memory locations 0x0100 to 0x01FF ( This can be
 
 The stack pointer is an 8-bit register, the stack works top-down wich means that when a byte is pushed the stack pointer is incremented. There is no overflow, the stack pointer will wrap around from 0x0100 to 0x01FF.
 
+The stack pointer allways points to the next free location.
+
 ## 1.2.5 Status Register - P
 
 Six of the eigth bits of the status register (**P**) are used by the arithmetic logic unit (**ALU**).
@@ -174,7 +176,7 @@ Example:
 
 ### Indexed Absolute
 
-Indexed absolute addressing takes two operads, forming a 16-bit address (just like absolute addressing). The difference is that we sum the value a register to calculate the final address.
+Indexed absolute addressing takes two operads, forming a 16-bit address (just like absolute addressing). The difference is that we sum the value of a register to calculate the final address.
 
 There are two forms of indexed absolute addressing
 
@@ -202,6 +204,42 @@ Example:
     | 0x0012 | PC + 2 <-- The most significant byte
     +--------+
     | ...... | PC + 3 <-- The next Opcode
+    +--------+
+    |        |
+
+
+### Indirect
+
+Indirect addressing takes two operads, forming a 16-bit address (just like absolute addressing). This address is then used to calculate the real value.
+
+Example:
+
+    Instruction: JMP ($1234)
+
+
+    address = (RAM[PC + 2] << 8) | RAM[PC + 1];
+
+    real_value = (RAM[address + 1] << 8) | RAM[address];
+
+    JMP RAM[real_value]
+    
+    PC += 3;
+
+    |        |
+    +--------+
+    |  AND   | PC     <-- Current Opcode 
+    +--------+
+    | 0x0034 | PC + 1 <-- The least significant byte
+    +--------+
+    | 0x0012 | PC + 2 <-- The most significant byte
+    +--------+
+    | ...... | PC + 3 <-- The next Opcode
+    +--------+
+    |        |
+    +--------+
+    |  0x56  | 0X1234 <-- Least significant byte of the real value
+    +--------+
+    |  0x78  | 0x1235 <-- Most significant byte of the real value
     +--------+
     |        |
 

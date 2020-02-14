@@ -13,6 +13,8 @@
 ## CPU
 
 - [ ] Emulate Opcodes
+- [X] Status Register Functions
+- [X] Stack Pointer Functions
 
 ## PPU
 
@@ -21,3 +23,19 @@
 ## Input Devices
 
 - [ ] Emulate a controller
+
+
+## Opcode List
+
+Down here to not get in the way of the other lists (this is a big one)
+
+### LDA
+
+- [X] Immediate
+- [X] Zero Page
+- [X] Zero Page, X
+- [X] Absolute
+- [X] Absolute, X
+- [X] Absolute, Y
+- [X] (Indirect, X)
+- [x] (Indirect), Y
