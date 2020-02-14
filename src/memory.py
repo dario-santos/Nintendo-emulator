@@ -1,5 +1,5 @@
 
-#  A simplified CPU memory map
+#  CPU memory map
 #
 #  +-------------+ 0x10000
 #  |   PRG-ROM   |

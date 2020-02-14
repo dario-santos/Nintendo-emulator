@@ -58,11 +58,40 @@ def cycle():
 def decode(opcode):
   global A, X, Y, PC, S, P
 
- if opcode == 0x78: # SEI - Set Interrupt Disable Status
+  if opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
+    # A + M + C -> A, C
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   immidiate     ADC #oper     69    2     2
+
+    # Overflow Flag
+    set_overflow((A + mem.memory[PC + 1] + (P & 0b1)), A, mem.memory[PC + 1])
+
+    # Carry Flag and operations
+    if A + mem.memory[PC + 1] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[PC + 1] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      clear_carry_flag(0b0)
+
+    # Zero Flag
+    update_zero_flag(A)
+    
+    # Negative Flag
+    update_negative_flag(value)
+
+    PC += 2
+  
+  elif opcode == 0x78: # SEI - Set Interrupt Disable Status
     # 1 -> I                           
     # |N|V| |B|D|I|Z|C|
     #  - - - - - 1 - -
-
+    #
     # addressing    assembler    opc  bytes  cyles
     # --------------------------------------------
     # implied       SEI           78    1     2
@@ -73,6 +102,44 @@ def decode(opcode):
     print('The opcode', hex(PC) , ' is not implemented.')
     exit(-1)
 
+## Status Register Flags
+# C
+def set_carry_flag(value):
+  global P
+  P &= 0b1111_1110 # Clears previus C flag
+  P |= value & 0b1
+
+# Z
+def set_zero_flag(value):
+  global P
+  P &= 0b1111_1101 # Clears previus Z flag
+  if not value: P |= 0b0010
+
+# I
+def set_break(value):
+  global P
+  P &= 0b1111_1011 # Clears previus I flag
+  P |= value & 0b0000_0100
+
+# B
+def set_break(value):
+  global P
+  P &= 0b1110_1111 # Clears previus B flag
+  P |= value & 0b0001_0000
+
+# V
+def set_overflow(result, x, y):
+  global P
+  P &= 0b1011_1111 # Clears previus V flag
+  if (x ^ result) & (y ^ result) & 0b1000_0000: P |= 0b1000_0000
+
+# N
+def set_negative_flag(value):
+  global P
+  P &= 0b0111_1111 # Clears previus N flag
+  P |= 0b1000_0000 & value
+
+# Debug
 def debug():
   global A, X, Y, PC, S, P, opcode
   
