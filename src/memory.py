@@ -30,11 +30,13 @@
 memory = []
 
 def initialize():
-    global memory
+  global memory
 
-    memory = [0] * 0x10000
+  memory = [0] * 0x10000
 
+
+# Debug
 def debug():
-    global memory
+  global memory
 
-    print(memory)
+  print(memory)

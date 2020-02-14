@@ -45,7 +45,7 @@ def initialize():
   X  = 0
   Y  = 0
   PC = config.prg_start
-  S  = 0xFF
+  S  = 0x01FF
   P  = 0
   opcode = 0
 
@@ -138,6 +138,17 @@ def set_negative_flag(value):
   global P
   P &= 0b0111_1111 # Clears previus N flag
   P |= 0b1000_0000 & value
+
+# Stack Pointer
+def s_push(value):
+  global S
+  S = ((S + 0x1) & 0x00FF) | 0x0100
+  mem.memory[S] = value
+
+def s_pull():
+  global S
+  S = ((S - 0x1) & 0x00FF) | 0x0100
+  return mem.memory[S]
 
 # Debug
 def debug():
