@@ -44,7 +44,7 @@ def initialize():
   A  = 0
   X  = 0
   Y  = 0
-  PC = 0x8000
+  PC = 0xC000
   S  = 0x01FF
   P  = 0
   opcode = 0
@@ -58,7 +58,52 @@ def cycle():
 def decode(opcode):
   global A, X, Y, PC, S, P
 
-  if opcode == 0x48: # PHA  Push Accumulator on Stack
+  if opcode == 0x18: # CLC - Clear Carry Flag
+
+    # 0 -> C
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - 0
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       CLC           18    1     2
+    
+    set_carry_flag(0b0)
+
+    PC += 1
+
+  elif opcode == 0x20: # JSR - Jump to New Location Saving Return Address
+
+    # push (PC + 2)
+    # (PC + 1) -> PCL
+    # (PC + 2) -> PCH
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      JSR oper      20    3     6
+    
+    s_push(PC)
+    
+    PC = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+
+    PC += 3
+
+  elif opcode == 0x38: # SEC - Set Carry Flag
+    # 1 -> C
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - 1
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       CLC           18    1     2
+    
+    set_carry_flag(0xFF)
+
+    PC += 1
+
+  elif opcode == 0x48: # PHA - Push Accumulator on Stack
     # push A
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -113,7 +158,7 @@ def decode(opcode):
 
     PC += 1
 
-  elif opcode == 0x81: # STA  Store Accumulator in Memory
+  elif opcode == 0x81: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -128,7 +173,7 @@ def decode(opcode):
     
     PC += 2
 
-  elif opcode == 0x85: # STA  Store Accumulator in Memory
+  elif opcode == 0x85: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -141,7 +186,23 @@ def decode(opcode):
     
     PC += 2
 
-  elif opcode == 0x8D: # STA  Store Accumulator in Memory
+  elif opcode == 0x98: # TXA  Transfer Index X to Accumulator
+    # X -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TYA           98    1     2
+
+    A = X
+
+    set_negative_flag(A)
+    set_zero_flag(A)
+    
+    PC += 1
+
+  elif opcode == 0x8D: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -156,7 +217,7 @@ def decode(opcode):
     
     PC += 3
 
-  elif opcode == 0x91: # STA  Store Accumulator in Memory
+  elif opcode == 0x91: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -171,7 +232,7 @@ def decode(opcode):
     
     PC += 2
 
-  elif opcode == 0x95: # STA  Store Accumulator in Memory
+  elif opcode == 0x95: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -184,7 +245,23 @@ def decode(opcode):
     
     PC += 2
 
-  elif opcode == 0x99: # STA  Store Accumulator in Memory
+  elif opcode == 0x98: # TYA - Transfer Index Y to Accumulator
+    # Y -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TYA           98    1     2
+
+    A = Y
+
+    set_negative_flag(A)
+    set_zero_flag(A)
+    
+    PC += 1
+
+  elif opcode == 0x99: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -199,7 +276,21 @@ def decode(opcode):
     
     PC += 3
 
-  elif opcode == 0x9D: # STA  Store Accumulator in Memory
+  elif opcode == 0x9A: # TXS - Transfer Index X to Stack Register
+
+    # X -> SP
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       TXS           9A    1     2
+
+    S = X
+    
+    PC += 1
+
+  elif opcode == 0x9D: # STA - Store Accumulator in Memory
     # A -> M
     #  |N|V| |B|D|I|Z|C|
     #   - - - - - - - -
@@ -232,6 +323,22 @@ def decode(opcode):
 
     PC += 2
 
+  elif opcode == 0xA2: # LDA - Load Accumulator With Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Immediate     LDA           A9    2     2
+ 
+    X = mem.memory[PC + 1]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+
   elif opcode == 0xA5: # LDA - Load Accumulator With Memory
     # M -> A                           
     # |N|V| |B|D|I|Z|C|
@@ -256,7 +363,7 @@ def decode(opcode):
     #
     # addressing    assembler    opc  bytes  cyles
     # --------------------------------------------
-    # Immediate     LDA           A9    2     2
+    # immidiate     LDX #oper     A2    2     2
  
     A = mem.memory[PC + 1]
 
@@ -354,7 +461,7 @@ def decode(opcode):
 
     PC += 3
   
-  elif opcode == 0xD8: # CLD  Clear Decimal Mode
+  elif opcode == 0xD8: # CLD - Clear Decimal Mode
     # 0 -> D
     #  |N|V| |B|D|I|Z|C|
     #   - - - - 0 - - -

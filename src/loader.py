@@ -50,7 +50,7 @@ def load_file(rom):
     # Load PRG - Program 
     # 0x8000 -> Lower Bank
     for i in range(0x4000):
-      mem.memory[0x8000 + i] = int.from_bytes(rom.read(1), "big")
+      mem.memory[0xC000 + i] = int.from_bytes(rom.read(1), "big")
 
 def is_ines(header):
   if header[0x7] & 0x0C == 0x00:
