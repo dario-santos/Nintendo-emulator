@@ -39,3 +39,13 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] Absolute, Y
 - [X] (Indirect, X)
 - [x] (Indirect), Y
+
+### STA
+
+- [X] Zero Page
+- [X] Zero Page, X
+- [X] Absolute
+- [X] Absolute, X
+- [X] Absolute, Y
+- [X] (Indirect, X)
+- [x] (Indirect), Y

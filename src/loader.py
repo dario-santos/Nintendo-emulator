@@ -43,11 +43,14 @@ def load_file(rom):
     # if trainer_is_present: skip 0x200 bytes
     config.prg_start = 0x210 if header[0x6] & 0b00000100 else 0x010
  
+    # Load trainer
     for i in range(0x10, config.prg_start):
       mem.memory[i] = int.from_bytes(rom.read(1), "big")
     
-    for i in range(config.prg_start, config.prg_start + 0x4000):
-      mem.memory[i] = int.from_bytes(rom.read(1), "big")
+    # Load PRG - Program 
+    # 0x8000 -> Lower Bank
+    for i in range(0x4000):
+      mem.memory[0x8000 + i] = int.from_bytes(rom.read(1), "big")
 
 def is_ines(header):
   if header[0x7] & 0x0C == 0x00:

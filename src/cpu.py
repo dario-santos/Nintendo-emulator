@@ -44,7 +44,7 @@ def initialize():
   A  = 0
   X  = 0
   Y  = 0
-  PC = config.prg_start
+  PC = 0x8000
   S  = 0x01FF
   P  = 0
   opcode = 0
@@ -53,12 +53,25 @@ def cycle():
   global PC, opcode
   debug()
   opcode = mem.memory[PC]
-  decode(mem.memory[PC])
+  decode(opcode)
 
 def decode(opcode):
   global A, X, Y, PC, S, P
 
-  if opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
+  if opcode == 0x48: # PHA  Push Accumulator on Stack
+    # push A
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PHA          48    1     3
+
+    s_push(A)
+
+    PC += 1
+
+  elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
     #   + + - - - - + +
@@ -83,7 +96,7 @@ def decode(opcode):
     set_zero_flag(A)
     
     # Negative Flag
-    set_negative_flag(value)
+    set_negative_flag(A)
 
     PC += 2
   
@@ -100,6 +113,107 @@ def decode(opcode):
 
     PC += 1
 
+  elif opcode == 0x81: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect,X)  STA (oper,X)  81    2     6
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[loc + X + 1] << 8) | mem.memory[loc + X]
+    mem.memory[real_loc] = A
+    
+    PC += 2
+
+  elif opcode == 0x85: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      STA oper      85    2     3
+
+    mem.memory[PC + 1] = A
+    
+    PC += 2
+
+  elif opcode == 0x8D: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      STA oper      8D    3     4
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] = A
+    
+    PC += 3
+
+  elif opcode == 0x91: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect),Y  STA (oper),Y  91    2     6
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
+    mem.memory[real_loc + Y] = A
+    
+    PC += 2
+
+  elif opcode == 0x95: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,X    STA oper,X    95    2     4
+
+    mem.memory[(PC + 1 + X) & 0xFF] = A
+    
+    PC += 2
+
+  elif opcode == 0x99: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,Y    STA oper,Y    99    3     5
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + Y] = A
+    
+    PC += 3
+
+  elif opcode == 0x9D: # STA  Store Accumulator in Memory
+    # A -> M
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,X    STA oper,X    9D    3     5
+
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + X] = A
+    
+    PC += 3
+
   elif opcode == 0xA1: # LDA - Load Accumulator With Memory
     # M -> A                           
     # |N|V| |B|D|I|Z|C|
@@ -107,13 +221,13 @@ def decode(opcode):
     #
     # addressing    assembler    opc  bytes  cyles
     # --------------------------------------------
-    # Absolute, Y   LDA           A1    2     6
+    # (Indirect, X) LDA           A1    2     6
 
     loc = (mem.memory[PC + 1] + X) & 0xFF
     real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
     A = mem.memory[real_loc]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 2
@@ -130,7 +244,7 @@ def decode(opcode):
     loc = mem.memory[PC + 1]
     A = mem.memory[loc]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 2
@@ -146,7 +260,7 @@ def decode(opcode):
  
     A = mem.memory[PC + 1]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 2
@@ -163,7 +277,7 @@ def decode(opcode):
     loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
     A = mem.memory[loc]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 3
@@ -175,14 +289,14 @@ def decode(opcode):
     #
     # addressing    assembler    opc  bytes  cyles
     # --------------------------------------------
-    # Absolute, X   LDA           B1    2     4*
+    # (Indirect), Y LDA           B1    2     5*
     # * Add 1 if page boundary is crossed
 
     loc = mem.memory[PC + 1]
     real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
     A = mem.memory[loc + Y]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 2
@@ -196,10 +310,10 @@ def decode(opcode):
     # --------------------------------------------
     # Zero Page, X  LDA           B5    2     4
 
-    loc = mem.memory[PC + 1]
-    A = mem.memory[(loc + X) 0x00FF]
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    A = mem.memory[loc]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 2
@@ -217,7 +331,7 @@ def decode(opcode):
     loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
     A = mem.memory[loc + Y]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 3
@@ -235,13 +349,26 @@ def decode(opcode):
     loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
     A = mem.memory[loc + X]
 
-    set_zero_flag(value)
+    set_zero_flag(A)
     set_negative_flag(A)
 
     PC += 3
   
+  elif opcode == 0xD8: # CLD  Clear Decimal Mode
+    # 0 -> D
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - 0 - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       PHA          D8    1     2
+
+    set_decimal_flag(0b0)
+
+    PC += 1
+
   else:
-    print('The opcode', hex(PC) , ' is not implemented.')
+    print('The opcode', hex(opcode) , ' is not implemented.')
     exit(-1)
 
 ## Status Register Flags
@@ -262,6 +389,12 @@ def set_interrupt_flag(value):
   global P
   P &= 0b1111_1011 # Clears previus I flag
   P |= value & 0b0000_0100
+
+# D
+def set_decimal_flag(value):
+  global P
+  P &= 0b1111_0111 # Clears previus I flag
+  P |= value & 0b0000_1000 
 
 # B
 def set_break_flag(value):

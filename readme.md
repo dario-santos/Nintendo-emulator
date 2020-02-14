@@ -247,6 +247,21 @@ Example:
 
 There are a few type of formats, iNES, NES2 and others.
 
+## Input
+
+The Nintendo NES has two ports, each one of them as a unique address.
+
+- Port 1: 0x4017
+- Port 2: 0x4016
+
+When there was a four-player adapter the addresses looked like:
+
+- Port 1: 0x4017
+- Port 2: 0x4016
+- Port 3: 0x4017
+- Port 4: 0x4016
+
+
 ## Memory Map
 
 0000-07FF is RAM, 
