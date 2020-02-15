@@ -129,6 +129,234 @@ def decode(opcode):
 
     PC += 1
 
+## Exclusive-OR Memory with Accumulator
+  elif opcode == 0x49: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     EOR #oper     49    2     2
+ 
+    A ^= mem.memory[PC + 1]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x45: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                      
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      EOR oper      45    2     3
+    loc = mem.memory[PC + 1]
+    A ^= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x55: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    EOR oper,X    55    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+    A ^= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x4D: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      EOR oper      4D    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A ^= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x5D: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    EOR oper,X    5D    3     4*
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A ^= mem.memory[loc + X]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x59: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,Y    EOR oper,Y    59    3     4*
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A ^= mem.memory[loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x41: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect,X)  EOR (oper,X)  41    2     6
+
+    loc = mem.memory[PC + 1] + X
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc & 0xFF]
+    A ^= mem.memory[real_loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x51: # EOR  Exclusive-OR Memory with Accumulator
+    # A EOR M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect),Y  EOR (oper),Y  51    2     5*
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc]
+    A ^= mem.memory[real_loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+
+## Increment by One
+  elif opcode == 0xE6: # INC - Increment Memory by One
+    # M + 1-> M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      INC oper      E6    2     5
+
+    loc = mem.memory[PC + 1]
+    mem.memory[loc] += 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0xF6: # INC - Increment Memory by One
+    # M + 1 -> M                        
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    INC oper,X    F6    2     6
+
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    mem.memory[loc] += 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0xEE: # INC - Increment Memory by One
+    # M + 1 -> M                          
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      INC oper      EE    3     6
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] += 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
+  elif opcode == 0xFE: # INC - Increment Memory by One
+    # M  + 1 -> M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # aabsolute,X    INC oper,X    FE    3     7
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + X] += 1
+
+    set_zero_flag(mem.memory[loc + X])
+    set_negative_flag(mem.memory[loc + X])
+
+    PC += 3
+
+  elif opcode == 0xE8: # INX - Increment Index X by One
+    # X + 1 -> X
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # implied       INX           E8    1     2
+
+    X += 1
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 1
+
+  elif opcode == 0xC8: # INY - Increment Index Y by One
+    # Y + 1 -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # implied       INY           C8    1     2
+
+    Y = Y + 1
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 1
+
 ## Jump To
   elif opcode == 0x4C: # JMP - Jump to New Location
     #(PC + 1) -> PCL

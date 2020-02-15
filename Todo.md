@@ -29,7 +29,17 @@
 
 Down here to not get in the way of the other lists (this is a big one)
 
-## Jump To
+### Exclusive OR
+
+- [X] EOR
+
+### Increment by One
+
+- [X] INC
+- [X] INX
+- [X] INY
+
+### Jump To
 
 - [X] JMP
 - [X] JSR
