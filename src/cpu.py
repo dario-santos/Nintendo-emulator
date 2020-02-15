@@ -647,7 +647,7 @@ def decode(opcode):
     PC += 2 + mem.memory[PC + 1] if not (P & 0b0000_0001) else 2
 
 ## Break
-elif opcode == 0x00: # BRK - Force Break
+  elif opcode == 0x00: # BRK - Force Break
     # interrupt,
     # push PC + 2,
     # push SR

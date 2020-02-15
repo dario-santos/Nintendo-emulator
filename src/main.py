@@ -8,7 +8,7 @@ def start_emulator():
   mem.initialize()
 
   # Load rom
-  loader.load_file('SuperMarioBros(E).nes')
+  loader.load_file('cpu_dummy_reads.nes')
 
   # Start CPU
   cpu.initialize()
