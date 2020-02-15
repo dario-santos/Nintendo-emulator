@@ -29,6 +29,10 @@
 
 Down here to not get in the way of the other lists (this is a big one)
 
+### And
+
+- [X] AND
+
 ### Clear Flags
 
 - [X] CLC

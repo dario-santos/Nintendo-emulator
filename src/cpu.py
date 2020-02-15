@@ -102,6 +102,134 @@ def decode(opcode):
 
     PC += 2
 
+## AND Memory with Accumulator
+  elif opcode == 0x29: # AND - AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     AND #oper     29    2     2
+ 
+    A &= mem.memory[PC + 1]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x25: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      AND oper      25    2     3
+    loc = mem.memory[PC + 1]
+    A &= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x35: # AND  AND Memory with Accumulator
+    # A AND M -> A                          
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    AND oper,X    35    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+    A &= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x2D: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      AND oper      2D    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A &= mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x3D: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    AND oper,X    3D    3     4*
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A &= mem.memory[loc + X]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x39: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,Y    AND oper,Y    39    3     4*
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A &= mem.memory[loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x21: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect,X)  AND (oper,X)  21    2     6
+
+    loc = mem.memory[PC + 1] + X
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc & 0xFF]
+    A &= mem.memory[real_loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x31: # AND  AND Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect),Y  AND (oper),Y  31    2     5*
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc]
+    A &= mem.memory[real_loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
 
 ## Clear Flags
   elif opcode == 0x18: # CLC - Clear Carry Flag
@@ -117,7 +245,7 @@ def decode(opcode):
     set_carry_flag(0b0)
 
     PC += 1
-    
+
   elif opcode == 0x58: # CLD  Clear Decimal Mode
     # 0 -> D
     #  |N|V| |B|D|I|Z|C|
