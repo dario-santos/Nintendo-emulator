@@ -129,6 +129,104 @@ def decode(opcode):
 
     PC += 1
 
+## Decrement by One
+  elif opcode == 0xC6: # DEC - Decrement Memory by One
+    # M - 1-> M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      DEC oper      C6    2     5
+
+    loc = mem.memory[PC + 1]
+    mem.memory[loc] -= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0xD6: # DEC - Decrement Memory by One
+    # M - 1 -> M                        
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    DEC oper,X    D6    2     6
+
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    mem.memory[loc] -= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0xCE: # DEC - Decrement Memory by One
+    # M - 1 -> M                          
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      DEC oper      CE    3     6
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc] -= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
+  elif opcode == 0xDE: # DEC - Decrement Memory by One
+    # M  - 1 -> M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    DEC oper,X    DE    3     7
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    mem.memory[loc + X] -= 1
+
+    set_zero_flag(mem.memory[loc + X])
+    set_negative_flag(mem.memory[loc + X])
+
+    PC += 3
+
+  elif opcode == 0xCA: # DEX - Decrement Index X by One
+    # X - 1 -> X
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # implied       DEC           CA    1     2
+
+    X -= 1
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 1
+
+  elif opcode == 0x88: # DEY - Decrement Index Y by One
+    # Y - 1 -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # implied       DEC           88    1     2
+
+    Y -= 1
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 1
+
 ## Exclusive-OR Memory with Accumulator
   elif opcode == 0x49: # EOR  Exclusive-OR Memory with Accumulator
     # A EOR M -> A                            
