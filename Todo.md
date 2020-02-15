@@ -29,6 +29,13 @@
 
 Down here to not get in the way of the other lists (this is a big one)
 
+### Clear Flags
+
+- [X] CLC
+- [X] CLD
+- [X] CLI
+- [X] CLV
+
 ### Compare Memory With
 
 - [X] CMP
