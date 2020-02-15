@@ -303,11 +303,105 @@ def decode(opcode):
 
     PC += 1
 
+## Shift One Bit Right
+  elif opcode == 0x4A: # LSR - Shift One Bit Right (Memory or Accumulator)
+    # 0 -> [76543210] -> C                      
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # accumulator   LSR A         4A    1     2
+
+    set_carry_flag(A)
+    
+    A >>= 1
+
+    set_zero_flag(A)
+    set_negative_flag(0x0)
+
+    PC += 1
+  elif opcode == 0x46: # LSR - Shift One Bit Right (Memory or Accumulator)
+    #0 -> [76543210] -> C                          
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      LSR oper      46    2     5
+    loc = mem.memory[PC + 1]
+    
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 2
+  elif opcode == 0x56: # LSR - Shift One Bit Right (Memory or Accumulator)
+    #0 -> [76543210] -> C                        
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    LSR oper,X    56    2     6
+    
+    loc = (mem.memory[PC + 1] + X) 0xFF
+
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 2
+  elif opcode == 0x4E: # LSR - Shift One Bit Right (Memory or Accumulator)
+    #0 -> [76543210] -> C                       
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      LSR oper      4E    3     6
+    
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 3
+  elif opcode == 0x5E: # LSR - Shift One Bit Right (Memory or Accumulator)
+    #0 -> [76543210] -> C                      
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    LSR oper,X    5E    3     7
+    
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + X
+
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 3
+    
 ## No Operation
-  elif opcode == 0xEA: # CLD - Clear Decimal Mode
+  elif opcode == 0xEA: # NOP - No Operation
     # ---
     #  |N|V| |B|D|I|Z|C|
-    #   - - - - 0 - - -
+    #   - - - - - - - -
     #
     #   addressing    assembler    opc  bytes  cyles
     #   --------------------------------------------
@@ -503,8 +597,211 @@ def decode(opcode):
     PC += 1
 
 ## Rotations
+  elif opcode == 0x2A: # ROL  Rotate One Bit Left (Memory or Accumulator)
+    # C <- [76543210] <- C                      
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # accumulator   ROL A         2A    1     2
 
-## ----
+    carry = P & 0b1
+    set_carry_flag(A >> 7)
+    
+    A <<= 1
+    A |= carry
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 1
+  elif opcode == 0x26: # ROL  Rotate One Bit Left (Memory or Accumulator)
+    # C <- [76543210] <- C                          
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      ROL oper      26    2     5
+    loc = mem.memory[PC + 1]
+    
+    carry = P & 0b1
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0x36: # ROL  Rotate One Bit Left (Memory or Accumulator)
+    #C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    ROL oper,X    36    2     6
+    
+    loc = (mem.memory[PC + 1] + X) 0xFF
+
+    carry = P & 0b1
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0x2E: # ROL  Rotate One Bit Left (Memory or Accumulator)
+    #C <- [76543210] <- C                        
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      ROL oper      2E    3     6
+    
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+
+    carry = P & 0b1
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
+  elif opcode == 0x3E: # ROL  Rotate One Bit Left (Memory or Accumulator)
+    #C <- [76543210] <- C                       
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    ROL oper,X    3E    3     7
+    
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + X
+
+    carry = P & 0b1
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
+    
+  elif opcode == 0x6A: # ROR - Rotate One Bit Right (Memory or Accumulator)
+    # C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # accumulator   ROR A         6A    1     2
+
+    carry = (P & 0b1) << 7
+    set_carry_flag(A)
+    
+    A >>= 1
+    A |= carry
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 1
+  elif opcode == 0x66: # ROR - Rotate One Bit Right (Memory or Accumulator)
+    # C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      ROR oper      66    2     5
+    loc = mem.memory[PC + 1]
+    
+    carry = (P & 0b1) << 7
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0x76: # ROR - Rotate One Bit Right (Memory or Accumulator)
+    # C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    ROR oper,X    76    2     6
+    
+    loc = (mem.memory[PC + 1] + X) 0xFF
+
+    carry = (P & 0b1) << 7
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 2
+  elif opcode == 0x6E: # ROR - Rotate One Bit Right (Memory or Accumulator)
+    # C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      ROR oper      6E    3     6
+    
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+
+    carry = (P & 0b1) << 7
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
+  elif opcode == 0x7E: # ROR - Rotate One Bit Right (Memory or Accumulator)
+    # C -> [76543210] -> C                         
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    ROR oper,X    7E    3     7
+    
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + X
+
+    carry = (P & 0b1) << 7
+    set_carry_flag(mem.memory[loc])
+    
+    mem.memory[loc] >>= 1
+    mem.memory[loc] |= carry
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(mem.memory[loc])
+
+    PC += 3
 
 ## Return from
   elif opcode == 0x40: # RTI - Return from Interrupt

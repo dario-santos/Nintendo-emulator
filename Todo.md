@@ -40,6 +40,9 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] (Indirect, X)
 - [X] (Indirect), Y
 
+### Shift One Bit Right
+
+- [X] LSR
 
 ### No Operation
 
@@ -55,6 +58,11 @@ Down here to not get in the way of the other lists (this is a big one)
 - [X] PHP
 - [X] PLA
 - [X] PLP
+
+### Rotate One Bit Right/Left
+
+- [X] ROL
+- [X] ROR
 
 ### Return From
 
