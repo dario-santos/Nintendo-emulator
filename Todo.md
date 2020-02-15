@@ -19,6 +19,7 @@
 ## PPU
 
 - [ ] Emulate graphics
+- [X] Add the color palette
 
 ## Input Devices
 

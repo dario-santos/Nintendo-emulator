@@ -531,7 +531,9 @@ def decode(opcode):
     loc = mem.memory[PC + 1]
     tmp = A & mem.memory[loc]
     
-    set_overflow(mem.memory[loc] >> 6)
+    P &= 0b1011_1111 # Clears previus V flag
+    P |= mem.memory[loc] >> 6
+    
     set_negative_flag(mem.memory[loc] >> 7)
     
     set_zero_flag(tmp)
@@ -550,7 +552,8 @@ def decode(opcode):
     loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
     tmp = A & mem.memory[loc]
     
-    set_overflow(mem.memory[loc] >> 6)
+    P &= 0b1011_1111 # Clears previus V flag
+    P |= mem.memory[loc] >> 6
     set_negative_flag(mem.memory[loc] >> 7)
     
     set_zero_flag(tmp)
@@ -715,7 +718,7 @@ def decode(opcode):
     #   --------------------------------------------
     #   implied       CLV          B8    1     2
 
-    set_overflow(0b0)
+    P &= 0b1011_1111 # Clears previus V flag
     PC += 1
 
 ## Compare Memory With
@@ -2202,7 +2205,7 @@ def decode(opcode):
     #   --------------------------------------------
     #   implied       RTS           60    1     6
 
-    s_pull(PC)
+    PC = s_pull()
 
     PC += 1
 
@@ -2696,8 +2699,8 @@ def decode(opcode):
     #   --------------------------------------------
     #   implied       TSX           BA    1     2
 
-    X = SP
-    x &= 0xFF
+    X = P
+    X &= 0xFF
 
     set_negative_flag(X)
     set_zero_flag(X)

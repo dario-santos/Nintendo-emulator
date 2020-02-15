@@ -94,3 +94,8 @@ def initialize():
     global vram
 
     vram = [0] * 0x10000
+
+def cicle():
+    # Read the PPU Control Register 1
+
+    # Read The PPU COntrol Register 2

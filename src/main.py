@@ -8,7 +8,7 @@ def start_emulator():
   mem.initialize()
 
   # Load rom
-  loader.load_file('cpu_dummy_reads.nes')
+  loader.load_file('nestest.nes')
 
   # Start CPU
   cpu.initialize()
