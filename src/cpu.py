@@ -58,23 +58,8 @@ def cycle():
 def decode(opcode):
   global A, X, Y, PC, S, P
 
-  if opcode == 0x10: # BPL - Branch on Result Plus
-    # branch on N = 0 
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   relative      BPL oper      10    2     2**
-    
-    if not (P & 0b1000_0000):
-      PC &= 0xFF00 
-      PC |= mem.memory[PC + 1]
-    else:
-      PC += 2
-
-## Subtract Memory from Accumulator with Borrow
-  elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
+## Addition Memory from Accumulator with Borrow
+  if opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
     #   + + - - - - + +
@@ -404,7 +389,6 @@ def decode(opcode):
 
     PC += 3
   
-
 ## AND Memory with Accumulator
   elif opcode == 0x29: # AND - AND Memory with Accumulator
     # A AND M -> A                            
@@ -534,6 +518,153 @@ def decode(opcode):
 
     PC += 2
 
+## Bit
+  elif opcode == 0x24: # BIT - Test Bits in Memory with Accumulator
+    # A AND M, M7 -> N, M6 -> V                        
+    # |N|V| |B|D|I|Z|C|
+    # M7 - - - - - + M6
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage    AND oper    35    2     4
+
+    loc = mem.memory[PC + 1]
+    tmp = A & mem.memory[loc]
+    
+    set_overflow(mem.memory[loc] >> 6)
+    set_negative_flag(mem.memory[loc] >> 7)
+    
+    set_zero_flag(tmp)
+
+    PC += 2
+
+  elif opcode == 0x2C: # BIT - Test Bits in Memory with Accumulator
+    # A AND M -> A                            
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      BIT oper      2C    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    tmp = A & mem.memory[loc]
+    
+    set_overflow(mem.memory[loc] >> 6)
+    set_negative_flag(mem.memory[loc] >> 7)
+    
+    set_zero_flag(tmp)
+
+    PC += 3
+   
+## Branch
+  elif opcode == 0x10: # BPL - Branch on Result Plus
+    # branch on N = 0 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BPL oper      10    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if not (P & 0b1000_0000) else 2
+
+  elif opcode == 0x70: # BVS - Branch on Overflow Set
+    # branch on V = 1 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BVC oper      70    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if P & 0b0100_0000 else 2
+
+  elif opcode == 0x50: # BVC - Branch on Overflow Clear
+    # branch on V = 1 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BVC oper      50    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if not (P & 0b0100_0000) else 2
+
+  elif opcode == 0xD0: # BNE - Branch on Result not Zero
+    # branch on V = 1 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BVC oper      50    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if not (P & 0b0000_0010) else 2
+
+  elif opcode == 0x30: # BMI - Branch on Result Minus
+    # branch on N = 1 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BMI oper      30    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if P & 0b1000_0000 else 2
+
+  elif opcode == 0xF0: # BEQ - Branch on Result Zero
+    # branch on Z = 1 
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BEQ oper      F0    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if P & 0b0000_0010 else 2
+
+  elif opcode == 0xB0: # BCS - Branch on Carry Set
+    # branch on C = 1
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BEQ oper      F0    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if P & 0b0000_0001 else 2
+
+  elif opcode == 0x90: # BCS - Branch on Carry Set
+    # branch on C = 0
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   relative      BEQ oper      F0    2     2**
+
+    PC += 2 + mem.memory[PC + 1] if not (P & 0b0000_0001) else 2
+
+## Break
+elif opcode == 0x00: # BRK - Force Break
+    # interrupt,
+    # push PC + 2,
+    # push SR
+    # |N|V| |B|D|I|Z|C|
+    #  - - - - - 1 - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    #  implied       BRK           00    1     7
+
+    set_interrupt_flag(0xFF)
+
+    s_push(PC + 2)
+    s_push(P)
+
+    PC += 1
+
 ## Clear Flags
   elif opcode == 0x18: # CLC - Clear Carry Flag
 
@@ -549,14 +680,14 @@ def decode(opcode):
 
     PC += 1
 
-  elif opcode == 0x58: # CLD  Clear Decimal Mode
+  elif opcode == 0xD8: # CLD  Clear Decimal Mode
     # 0 -> D
     #  |N|V| |B|D|I|Z|C|
     #   - - - - 0 - - -
     #
     #   addressing    assembler    opc  bytes  cyles
     #   --------------------------------------------
-    #   implied       CLI           58    1     2
+    #   implied       CLD           D8    1     2
 
     set_decimal_flag(0b0)
 
@@ -588,7 +719,7 @@ def decode(opcode):
     PC += 1
 
 ## Compare Memory With
- elif opcode == 0xC9: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xC9: # CMP - Compare Memory with Accumulator
     # A - M
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -608,7 +739,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xC5: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xC5: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -629,7 +760,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xD5: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xD5: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -650,7 +781,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xCD: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xCD: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -671,7 +802,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 3
- elif opcode == 0xDD: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xDD: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -692,7 +823,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 3
- elif opcode == 0xD9: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xD9: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -713,7 +844,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 3
- elif opcode == 0xC1: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xC1: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -735,7 +866,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xD1: # CMP - Compare Memory with Accumulator
+  elif opcode == 0xD1: # CMP - Compare Memory with Accumulator
     # A - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -758,7 +889,7 @@ def decode(opcode):
 
     PC += 2
 
- elif opcode == 0xE0: # CPX - Compare Memory and Index X
+  elif opcode == 0xE0: # CPX - Compare Memory and Index X
     # X - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -779,7 +910,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xE4: # CPX - Compare Memory and Index X
+  elif opcode == 0xE4: # CPX - Compare Memory and Index X
     # X - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -800,7 +931,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xEC: # CPX - Compare Memory and Index X
+  elif opcode == 0xEC: # CPX - Compare Memory and Index X
     # X - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -822,7 +953,7 @@ def decode(opcode):
 
     PC += 3
 
- elif opcode == 0xC0: # CPY - Compare Memory and Index Y
+  elif opcode == 0xC0: # CPY - Compare Memory and Index Y
     # Y - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -842,7 +973,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xC4: # CPY - Compare Memory and Index Y
+  elif opcode == 0xC4: # CPY - Compare Memory and Index Y
     # Y - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -863,7 +994,7 @@ def decode(opcode):
     set_negative_flag(result)
 
     PC += 2
- elif opcode == 0xCC: # CPY - Compare Memory and Index Y
+  elif opcode == 0xCC: # CPY - Compare Memory and Index Y
     # Y - M                           
     # |N|V| |B|D|I|Z|C|
     #  + - - - - - + +
@@ -2655,7 +2786,7 @@ def set_break_flag(value):
 def set_overflow(result, x, y):
   global P
   P &= 0b1011_1111 # Clears previus V flag
-  if (x ^ result) & (y ^ result) & 0b1000_0000: P |= 0b1000_0000
+  if (x ^ result) & (y ^ result) & 0b1000_0000: P |= 0b0100_0000
 
 # N
 def set_negative_flag(value):
