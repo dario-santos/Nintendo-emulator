@@ -29,16 +29,16 @@
 
 Down here to not get in the way of the other lists (this is a big one)
 
-### LDA
+## Jump To
 
-- [X] Immediate
-- [X] Zero Page
-- [X] Zero Page, X
-- [X] Absolute
-- [X] Absolute, X
-- [X] Absolute, Y
-- [X] (Indirect, X)
-- [X] (Indirect), Y
+- [X] JMP
+- [X] JSR
+
+### Load With Memory
+
+- [X] LDA
+- [X] LDX
+- [X] LDY
 
 ### Shift One Bit Right
 

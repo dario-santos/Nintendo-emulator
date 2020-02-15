@@ -87,24 +87,6 @@ def decode(opcode):
 
     PC += 1
 
-  elif opcode == 0x20: # JSR - Jump to New Location Saving Return Address
-
-    # push (PC + 2)
-    # (PC + 1) -> PCL
-    # (PC + 2) -> PCH
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - -
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute      JSR oper      20    3     6
-    
-    s_push(PC)
-    
-    PC = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-
-    PC += 3
-
   elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
@@ -133,163 +115,7 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
-  
-  elif opcode == 0xA1: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # (Indirect, X) LDA           A1    2     6
 
-    loc = (mem.memory[PC + 1] + X) & 0xFF
-    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
-    A = mem.memory[real_loc]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xA2: # LDA - Load Accumulator With Memory
-    # M -> X                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Immediate     LDA           A9    2     2
- 
-    X = mem.memory[PC + 1]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xA5: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Zero Page     LDA           A5    2     3
-
-    loc = mem.memory[PC + 1]
-    A = mem.memory[loc]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xA9: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # immidiate     LDX #oper     A2    2     2
- 
-    A = mem.memory[PC + 1]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xAD: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Absolute      LDA           AD    3     4
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    A = mem.memory[loc]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 3
-
-  elif opcode == 0xB1: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # (Indirect), Y LDA           B1    2     5*
-    # * Add 1 if page boundary is crossed
-
-    loc = mem.memory[PC + 1]
-    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
-    A = mem.memory[loc + Y]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xB5: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Zero Page, X  LDA           B5    2     4
-
-    loc = (mem.memory[PC + 1] + X) & 0x00FF
-    A = mem.memory[loc]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 2
-
-  elif opcode == 0xB9: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Absolute, Y   LDA           B9    3     4*
-    # * Add 1 if page boundary is crossed
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    A = mem.memory[loc + Y]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 3
-
-  elif opcode == 0xBD: # LDA - Load Accumulator With Memory
-    # M -> A                           
-    # |N|V| |B|D|I|Z|C|
-    #  + + - - - - - -
-    #
-    # addressing    assembler    opc  bytes  cyles
-    # --------------------------------------------
-    # Absolute, X   LDA           BD    3     4*
-    # * Add 1 if page boundary is crossed
-
-    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
-    A = mem.memory[loc + X]
-
-    set_zero_flag(A)
-    set_negative_flag(A)
-
-    PC += 3
-  
   elif opcode == 0xD8: # CLD - Clear Decimal Mode
     # 0 -> D
     #  |N|V| |B|D|I|Z|C|
@@ -302,6 +128,47 @@ def decode(opcode):
     set_decimal_flag(0b0)
 
     PC += 1
+
+## Jump To
+  elif opcode == 0x4C: # JMP - Jump to New Location
+    #(PC + 1) -> PCL
+    #(PC + 2) -> PCH
+    # |N|V| |B|D|I|Z|C|
+    #  - - - - - - - -
+    #
+    #  addressing    assembler    opc  bytes  cyles
+    #  --------------------------------------------
+    #  absolute      JMP oper      4C    3     3
+    
+    PC = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+  elif opcode == 0x6C: # JMP - Jump to New Location
+    #(PC + 1) -> PCL
+    #(PC + 2) -> PCH
+    # |N|V| |B|D|I|Z|C|
+    #  - - - - - - - -
+    #
+    #  addressing    assembler    opc  bytes  cyles
+    #  --------------------------------------------
+    #  indirect      JMP (oper)    6C    3     5
+    
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+
+    PC = (mem.memory[loc + 1] << 8) | mem.memory[loc]
+
+  elif opcode == 0x20: # JSR - Jump to New Location Saving Return Address
+    #push (PC + 2)
+    #(PC + 1) -> PCL
+    #(PC + 2) -> PCH
+    # |N|V| |B|D|I|Z|C|
+    #  - - - - - - - -
+    #
+    #  addressing    assembler    opc  bytes  cyles
+    #  --------------------------------------------
+    #  absolute      JSR oper      20    3     6
+    
+    s_push(PC + 2)
+    
+    PC = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
 
 ## Load Accumulator/Indexs With Memory
   elif opcode == 0xA9: # LDA - Load Accumulator With Memory
@@ -644,7 +511,7 @@ def decode(opcode):
     # --------------------------------------------
     # zeropage,X    LSR oper,X    56    2     6
     
-    loc = (mem.memory[PC + 1] + X) 0xFF
+    loc = (mem.memory[PC + 1] + X) & 0xFF
 
     set_carry_flag(mem.memory[loc])
     
@@ -706,7 +573,6 @@ def decode(opcode):
     PC += 1
 
 ## OR Memory with Accumulator
-
   elif opcode == 0x09: # ORA - OR Memory with Accumulator
     # A OR M -> A                            
     # |N|V| |B|D|I|Z|C|
@@ -828,7 +694,7 @@ def decode(opcode):
     # (indirect),Y  ORA (oper),Y  11    2     5*
 
     loc = mem.memory[PC + 1]
-    real_loc = (mem.memory[(loc + 1) 0xFF] << 8) | mem.memory[loc]
+    real_loc = (mem.memory[(loc + 1) & 0xFF] << 8) | mem.memory[loc]
     A |= mem.memory[real_loc + Y]
 
     set_zero_flag(A)
@@ -941,7 +807,7 @@ def decode(opcode):
     # --------------------------------------------
     # zeropage,X    ROL oper,X    36    2     6
     
-    loc = (mem.memory[PC + 1] + X) 0xFF
+    loc = (mem.memory[PC + 1] + X) & 0xFF
 
     carry = P & 0b1
     set_carry_flag(mem.memory[loc] >> 7)
@@ -1044,7 +910,7 @@ def decode(opcode):
     # --------------------------------------------
     # zeropage,X    ROR oper,X    76    2     6
     
-    loc = (mem.memory[PC + 1] + X) 0xFF
+    loc = (mem.memory[PC + 1] + X) & 0xFF
 
     carry = (P & 0b1) << 7
     set_carry_flag(mem.memory[loc])
