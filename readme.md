@@ -248,6 +248,21 @@ Example:
 
 ## 2. PPU
 
+PPU has two control registers that are in the memory locations 0x2000 (PPU Control Register 1) and 0x2001 (PPU Control Register 2)
+
+
+### PPU COntrol Register 2
+
+    +-+-+-+-+-+-+-+-+ 
+    |0|0|0|0|0|0|0|0|
+    +-+-+-+-+-+-+-+-+
+     | | | | | | | |
+     | | | | | | | +---> If 1 then color mode, else monochromatic mode
+     | | | | | | +-----> 
+
+
+
+
 ## Roms
 
 There are a few type of formats, iNES, NES2 and others.

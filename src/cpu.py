@@ -52,7 +52,7 @@ def initialize():
 def cycle():
   global PC, opcode
   opcode = mem.memory[PC]
-  debug()
+  #debug()
   decode(opcode)
 
 def decode(opcode):

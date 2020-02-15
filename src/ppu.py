@@ -1,3 +1,5 @@
+import memory as mem
+
 colour_palette = [
     (0x75, 0x75, 0x75), # 0x00
     (0x27, 0x1B, 0x8F), # 0x01
@@ -90,12 +92,32 @@ colour_palette = [
 
 vram = [0] * 0x10000
 
+PPUCTRL   = 0
+PPUMASK   = 0
+PPUSTATUS = 0
+OAMADDR   = 0
+OAMADATA  = 0
+PPUSCROLL = 0
+PPUADDR   = 0
+PPUDATA   = 0
+OAMDMA    = 0
+
+
 def initialize():
-    global vram
+  global vram
 
-    vram = [0] * 0x10000
+  vram = [0] * 0x10000
 
-def cicle():
-    # Read the PPU Control Register 1
+def cycle():
+  # Read the PPU Control Register 1
 
-    # Read The PPU COntrol Register 2
+  # Read The PPU COntrol Register 2
+  print('PPU CTRL:   ', bin(mem.memory[0x2000]))
+  print('PPU MASK:   ', bin(mem.memory[0x2001]))
+  print('PPU STATUS: ', bin(mem.memory[0x2002]))
+  print('OAMADDR:    ', bin(mem.memory[0x2003]))
+  print('OAMADATA:   ', bin(mem.memory[0x2004]))
+  print('PPUSCROLL:  ', bin(mem.memory[0x2005]))
+  print('PPUADDR:    ', bin(mem.memory[0x2006]))
+  print('PPUDATA:    ', bin(mem.memory[0x2007]))
+  print('OAMDMA:     ', bin(mem.memory[0x4014]))
