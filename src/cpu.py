@@ -303,6 +303,302 @@ def decode(opcode):
 
     PC += 1
 
+## Load Accumulator/Indexs With Memory
+  elif opcode == 0xA9: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     LDX #oper     A2    2     2
+ 
+    A = mem.memory[PC + 1]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xA5: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Zero Page     LDA           A5    2     3
+
+    loc = mem.memory[PC + 1]
+    A = mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xB5: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Zero Page, X  LDA           B5    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    A = mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xAD: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Absolute      LDA           AD    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A = mem.memory[loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xBD: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Absolute, X   LDA           BD    3     4*
+    # * Add 1 if page boundary is crossed
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A = mem.memory[loc + X]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xB9: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Absolute, Y   LDA           B9    3     4*
+    # * Add 1 if page boundary is crossed
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    A = mem.memory[loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0xA1: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (Indirect, X) LDA           A1    2     6
+
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
+    A = mem.memory[real_loc]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0xB1: # LDA - Load Accumulator With Memory
+    # M -> A                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (Indirect), Y LDA           B1    2     5*
+    # * Add 1 if page boundary is crossed
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[loc + 1] << 8) | mem.memory[loc]
+    A = mem.memory[loc + Y]
+
+    set_zero_flag(A)
+    set_negative_flag(A)
+
+    PC += 2
+
+  elif opcode == 0xA2: # LDX - Load Index X With Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # Immediate     LDX           A2    2     2
+ 
+    X = mem.memory[PC + 1]
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 2
+  elif opcode == 0xA6: # LDX - Load Index X with Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      LDX oper      A6    2     3
+
+    loc = mem.memory[PC + 1]
+    X = mem.memory[loc]
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 2
+  elif opcode == 0xB6: # LDX - Load Index X with Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,Y    LDX oper,Y    B6    2     4
+
+    loc = (mem.memory[PC + 1] + Y) & 0x00FF
+    X = mem.memory[loc]
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 2
+  elif opcode == 0xAE: # LDX - Load Index X with Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      LDX oper      AE    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    X = mem.memory[loc]
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 3
+  elif opcode == 0xBE: # LDX - Load Index X with Memory
+    # M -> X                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,Y    LDX oper,Y    BE    3     4*
+    # * Add 1 if page boundary is crossed
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    X = mem.memory[loc + Y]
+
+    set_zero_flag(X)
+    set_negative_flag(X)
+
+    PC += 3
+
+  elif opcode == 0xA0: # LDY - Load Index Y with Memory
+    # M -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     LDY #oper     A0    2     2
+ 
+    Y = mem.memory[PC + 1]
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 2
+  elif opcode == 0xA4: # LDY - Load Index Y with Memory
+    # M -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      LDY oper      A4    2     3
+
+    loc = mem.memory[PC + 1]
+    Y = mem.memory[loc]
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 2
+  elif opcode == 0xB4: # LDY - Load Index Y with Memory
+    # M -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    LDY oper,X    B4    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    Y = mem.memory[loc]
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 2
+  elif opcode == 0xAC: # LDY - Load Index Y with Memory
+    # M -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      LDY oper      AC    3     4
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    Y = mem.memory[loc]
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 3
+  elif opcode == 0xBC: # LDY - Load Index Y with Memory
+    # M -> Y                           
+    # |N|V| |B|D|I|Z|C|
+    #  + + - - - - - -
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    LDY oper,X    BC    3     4*
+    # * Add 1 if page boundary is crossed
+
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    Y = mem.memory[loc + X]
+
+    set_zero_flag(Y)
+    set_negative_flag(Y)
+
+    PC += 3
+
 ## Shift One Bit Right
   elif opcode == 0x4A: # LSR - Shift One Bit Right (Memory or Accumulator)
     # 0 -> [76543210] -> C                      
