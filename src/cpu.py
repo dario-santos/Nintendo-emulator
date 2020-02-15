@@ -73,6 +73,7 @@ def decode(opcode):
     else:
       PC += 2
 
+## Subtract Memory from Accumulator with Borrow
   elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
@@ -83,14 +84,14 @@ def decode(opcode):
     #   immidiate     ADC #oper     69    2     2
 
     # Overflow Flag
-    set_overflow((A + mem.memory[PC + 1] + (P & 0b1)), A, mem.memory[PC + 1])
+    set_overflow((A - mem.memory[PC + 1] - (P & 0b1)), A, mem.memory[PC + 1])
 
     # Carry Flag and operations
-    if A + mem.memory[PC + 1] + (P & 0b1) > 0xFF:
+    if A - mem.memory[PC + 1] - (P & 0b1) > 0xFF:
       set_carry_flag(0b1)
       A = 0x0
     else:
-      A += mem.memory[PC + 1] + (P & 0b1)
+      A -= mem.memory[PC + 1] - (P & 0b1)
       A &= 0xFF # Ensure the 8 bits
       set_carry_flag(0b0)
 
@@ -101,6 +102,308 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
+  elif opcode == 0x65: # ADC - Add Memory to Accumulator with Carry
+    # A + M + C -> A, C
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage      SBC oper      E5    2     3
+
+    # Overflow Flag
+    loc = mem.memory[PC + 1]
+    set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x75: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   zeropage,X    SBC oper,X    F5    2     4
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 1] + X) & 0x00FF
+    set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 2
+  elif opcode == 0x6D: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute      SBC oper      ED    3     4
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
+    set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x7D: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,X    SBC oper,X    FD    3     4*
+
+    # Overflow Flag
+    loc = ((mem.memory[PC + 2] << 8) | mem.memory[PC + 1]) + X
+    set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x79: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   absolute,Y    SBC oper,Y    F9    3     4*
+
+    # Overflow Flag
+    loc = ((mem.memory[PC + 2] << 8) | mem.memory[PC + 1]) + Y
+    set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x61: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect,X)  SBC (oper,X)  E1    2     6
+
+    # Overflow Flag
+    loc = (mem.memory[PC + 1] + X)
+    real_loc = ((mem.memory[(loc + 1) & 0x00FF] << 8) | mem.memory[loc & 0x00FF])
+    
+    set_overflow((A + mem.memory[real_loc] + (P & 0b1)), A, mem.memory[real_loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[real_loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[real_loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+  elif opcode == 0x71: # ADC - Add Memory to Accumulator with Carry
+    # A - M - C -> A
+    #  |N|V| |B|D|I|Z|C|
+    #   + + - - - - + +
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   (indirect),Y  SBC (oper),Y  F1    2     5*
+
+    # Overflow Flag
+    loc = mem.memory[PC + 1]
+    real_loc = ((mem.memory[loc + 1] << 8) | mem.memory[loc]) + Y
+    
+    set_overflow((A + mem.memory[real_loc] + (P & 0b1)), A, mem.memory[real_loc])
+
+    # Carry Flag and operations
+    if A + mem.memory[real_loc] + (P & 0b1) > 0xFF:
+      set_carry_flag(0b1)
+      A = 0x0
+    else:
+      A += mem.memory[real_loc] + (P & 0b1)
+      A &= 0xFF # Ensure the 8 bits
+      set_carry_flag(0b0)
+
+    # Zero Flag
+    set_zero_flag(A)
+    
+    # Negative Flag
+    set_negative_flag(A)
+
+    PC += 3
+
+## Shift One Bit Left
+  elif opcode == 0x0A: # ASL - Shift Left One Bit (Memory or Accumulator)
+    # 0 -> [76543210] -> C                      
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # accumulator   LSR A         4A    1     2
+
+    set_carry_flag(A >> 7)
+    
+    A <<= 1
+
+    set_zero_flag(A)
+    set_negative_flag(0x0)
+
+    PC += 1
+  elif opcode == 0x06: # ASL - Shift Left One Bit (Memory or Accumulator)
+    #0 -> [76543210] -> C                          
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      LSR oper      46    2     5
+    loc = mem.memory[PC + 1]
+    
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 2
+  elif opcode == 0x16: # ASL - Shift Left One Bit (Memory or Accumulator)
+    #0 -> [76543210] -> C                        
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    LSR oper,X    56    2     6
+    
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 2
+  elif opcode == 0x0E: # ASL - Shift Left One Bit (Memory or Accumulator)
+    #0 -> [76543210] -> C                       
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      LSR oper      4E    3     6
+    
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 3
+  elif opcode == 0x1E: # ASL - Shift Left One Bit (Memory or Accumulator)
+    #0 -> [76543210] -> C                      
+    # |N|V| |B|D|I|Z|C|
+    #  0 - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    LSR oper,X    5E    3     7
+    
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + X
+
+    set_carry_flag(mem.memory[loc] >> 7)
+    
+    mem.memory[loc] <<= 1
+    
+    set_zero_flag(mem.memory[loc])
+    set_negative_flag(0x0)
+
+    PC += 3
+  
 
 ## AND Memory with Accumulator
   elif opcode == 0x29: # AND - AND Memory with Accumulator
