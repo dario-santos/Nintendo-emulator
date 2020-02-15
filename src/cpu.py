@@ -73,20 +73,6 @@ def decode(opcode):
     else:
       PC += 2
 
-  elif opcode == 0x18: # CLC - Clear Carry Flag
-
-    # 0 -> C
-    #  |N|V| |B|D|I|Z|C|
-    #   - - - - - - - 0
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   implied       CLC           18    1     2
-    
-    set_carry_flag(0b0)
-
-    PC += 1
-
   elif opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
     # A + M + C -> A, C
     #  |N|V| |B|D|I|Z|C|
@@ -116,18 +102,357 @@ def decode(opcode):
 
     PC += 2
 
-  elif opcode == 0xD8: # CLD - Clear Decimal Mode
+
+## Clear Flags
+  elif opcode == 0x18: # CLC - Clear Carry Flag
+
+    # 0 -> C
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - - - 0
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       CLC           18    1     2
+    
+    set_carry_flag(0b0)
+
+    PC += 1
+    
+  elif opcode == 0x58: # CLD  Clear Decimal Mode
     # 0 -> D
     #  |N|V| |B|D|I|Z|C|
     #   - - - - 0 - - -
     #
     #   addressing    assembler    opc  bytes  cyles
     #   --------------------------------------------
-    #   implied       PHA          D8    1     2
+    #   implied       CLI           58    1     2
 
     set_decimal_flag(0b0)
 
     PC += 1
+
+  elif opcode == 0x58: # CLI  Clear Interrupt Disable Bit
+    # 0 -> I
+    #  |N|V| |B|D|I|Z|C|
+    #   - - - - - 0 - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       CLI           58    1     2
+
+    set_interrupt_flag(0b0)
+
+    PC += 1
+
+  elif opcode == 0xB8: # CLV  Clear Overflow Flag
+    # 0 -> V
+    #  |N|V| |B|D|I|Z|C|
+    #   - 0 - - - - - -
+    #
+    #   addressing    assembler    opc  bytes  cyles
+    #   --------------------------------------------
+    #   implied       CLV          B8    1     2
+
+    set_overflow(0b0)
+    PC += 1
+
+## Compare Memory With
+ elif opcode == 0xC9: # CMP - Compare Memory with Accumulator
+    # A - M
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    #  immidiate     CMP #oper     C9    2     2
+
+    result = A - mem.memory[PC + 1]
+  
+    if A - mem.memory[PC + 1] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xC5: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      CMP oper      C5    2     3
+
+    loc = mem.memory[PC + 1]
+    result = A - mem.memory[loc]
+  
+    if A - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xD5: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage,X    CMP oper,X    D5    2     4
+
+    loc = (mem.memory[PC + 1] + X) & 0xFF
+    result = A - mem.memory[loc]
+  
+    if A - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xCD: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      CMP oper      CD    3     4
+
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+    result = A - mem.memory[loc]
+  
+    if A - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 3
+ elif opcode == 0xDD: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    CMP oper,X    DD    3     4*
+
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + X
+    result = A - mem.memory[loc]
+  
+    if A - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 3
+ elif opcode == 0xD9: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute,X    CMP oper,X    DD    3     4*
+
+    loc = ((mem.memory[PC + 1] << 8) | mem.memory[PC + 1]) + Y
+    result = A - mem.memory[loc]
+  
+    if A - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 3
+ elif opcode == 0xC1: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect,X)  CMP (oper,X)  C1    2     6
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[(loc + 1 + X) & 0x00FF] << 8) | mem.memory[(loc + X) & 0x00FF]
+    result = A - mem.memory[real_loc]
+  
+    if A - mem.memory[real_loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xD1: # CMP - Compare Memory with Accumulator
+    # A - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # (indirect),Y  CMP (oper),Y  D1    2     5*
+
+    loc = mem.memory[PC + 1]
+    real_loc = (mem.memory[(loc + 1) & 0x00FF] << 8) | mem.memory[loc & 0x00FF]
+    result = A - mem.memory[real_loc + Y]
+  
+    if A - mem.memory[real_loc + Y] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+
+ elif opcode == 0xE0: # CPX - Compare Memory and Index X
+    # X - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    #  immidiate     CPX #oper     E0    2     2
+
+
+    result = X - mem.memory[PC + 1]
+  
+    if X - mem.memory[PC + 1] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xE4: # CPX - Compare Memory and Index X
+    # X - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      CPX oper      E4    2     3
+
+    loc = mem.memory[PC + 1]
+    result = X - mem.memory[loc]
+  
+    if X - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xEC: # CPX - Compare Memory and Index X
+    # X - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      CPX oper      EC    3     4
+
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+    result = X - mem.memory[loc]
+  
+    if X - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 3
+
+ elif opcode == 0xC0: # CPY - Compare Memory and Index Y
+    # Y - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # immidiate     CPY #oper     C0    2     2
+
+    result = Y - mem.memory[PC + 1]
+  
+    if Y - mem.memory[PC + 1] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xC4: # CPY - Compare Memory and Index Y
+    # Y - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # zeropage      CPX oper      E4    2     3
+
+    loc = mem.memory[PC + 1]
+    result = Y - mem.memory[loc]
+  
+    if Y - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 2
+ elif opcode == 0xCC: # CPY - Compare Memory and Index Y
+    # Y - M                           
+    # |N|V| |B|D|I|Z|C|
+    #  + - - - - - + +
+    #
+    # addressing    assembler    opc  bytes  cyles
+    # --------------------------------------------
+    # absolute      CPY oper      CC    3     4
+
+    loc = (mem.memory[PC + 1] << 8) | mem.memory[PC + 1]
+    result = Y - mem.memory[loc]
+  
+    if Y - mem.memory[loc] > 0xFF: 
+      set_carry_flag(0xFF)
+    else:
+      set_carry_flag(0x00)
+
+    set_zero_flag(result)
+    set_negative_flag(result)
+
+    PC += 3
 
 ## Decrement by One
   elif opcode == 0xC6: # DEC - Decrement Memory by One

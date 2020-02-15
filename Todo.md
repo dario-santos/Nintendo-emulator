@@ -29,6 +29,12 @@
 
 Down here to not get in the way of the other lists (this is a big one)
 
+### Compare Memory With
+
+- [X] CMP
+- [X] CPX
+- [X] CPY
+
 ### Exclusive OR
 
 - [X] EOR
