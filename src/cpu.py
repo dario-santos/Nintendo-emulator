@@ -12,34 +12,18 @@ Y = 0
 PC = 0
 
 # Stack Pointer - 8 bits
-# The stack pointer works top-down, when a byte is pushed it is decremented,
-# when a byte is pulled the stack pointer is incremented.
-# There is no detection of stack overflow and the stack pointer 
-# will just wrap around from $00 to $FF.
 S = 0
 
 # Status Register - 8 bits
-# 6 bits are used byte the Arithmetic Logic Unit (ALU) 
-#
-#  C - Carry Flag
-#  Z - Zero Flag
-#  I - Interrupt Disable
-#  D - Decimal Mode
-#  B - Break Command
-#  V - Overflow Flag
-#  N - Negative Flag 
-#
-# +-+-+-+-+-+-+-+-+
-# |N|V| |B|D|I|Z|C|
-# +-+-+-+-+-+-+-+-+
-#  7 6 5 4 3 2 1 0
 P = 0
 
 # The NES opcodes range from 0x00 to 0xFF
 opcode = 0
 
+cycles = 0
+
 def initialize():
-  global A, X, Y, PC, S, P, opcode
+  global A, X, Y, PC, S, P, opcode, cycles
     
   A  = 0
   X  = 0
@@ -48,26 +32,24 @@ def initialize():
   S  = 0x01FF
   P  = 0
   opcode = 0
+  cycles = 0
 
 def cycle():
-  global PC, opcode
+  global PC, opcode, cycles
+  
+  if cycles > 0:
+    cycle -= 1
+    return
+
+  debug()
   opcode = mem.memory[PC]
-  #debug()
   decode(opcode)
 
 def decode(opcode):
-  global A, X, Y, PC, S, P
+  global A, X, Y, PC, S, P, cycles
 
-## Addition Memory from Accumulator with Borrow
-  if opcode == 0x69: # ADC - Add Memory to Accumulator with Carry
-    # A + M + C -> A, C
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - + +
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   immidiate     ADC #oper     69    2     2
-
+  # ADC - Add Memory to Accumulator with Carry
+  if opcode == 0x69:   # addressing immidiate
     # Overflow Flag
     set_overflow((A - mem.memory[PC + 1] - (P & 0b1)), A, mem.memory[PC + 1])
 
@@ -87,15 +69,8 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
-  elif opcode == 0x65: # ADC - Add Memory to Accumulator with Carry
-    # A + M + C -> A, C
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - + +
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   zeropage      SBC oper      E5    2     3
-
+    cycles = 2
+  elif opcode == 0x65: # addressing zeropage
     # Overflow Flag
     loc = mem.memory[PC + 1]
     set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
@@ -116,14 +91,8 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
-  elif opcode == 0x75: # ADC - Add Memory to Accumulator with Carry
-    # A - M - C -> A
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - + +
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   zeropage,X    SBC oper,X    F5    2     4
+    cycle = 3
+  elif opcode == 0x75: # addressing zeropage,X
 
     # Overflow Flag
     loc = (mem.memory[PC + 1] + X) & 0x00FF
@@ -145,15 +114,8 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 2
-  elif opcode == 0x6D: # ADC - Add Memory to Accumulator with Carry
-    # A - M - C -> A
-    #  |N|V| |B|D|I|Z|C|
-    #   + + - - - - + +
-    #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute      SBC oper      ED    3     4
-
+    cycles = 4
+  elif opcode == 0x6D: # addressing absolute
     # Overflow Flag
     loc = (mem.memory[PC + 2] << 8) | mem.memory[PC + 1]
     set_overflow((A + mem.memory[loc] + (P & 0b1)), A, mem.memory[loc])
@@ -174,14 +136,13 @@ def decode(opcode):
     set_negative_flag(A)
 
     PC += 3
+    cycles = 4
   elif opcode == 0x7D: # ADC - Add Memory to Accumulator with Carry
     # A - M - C -> A
     #  |N|V| |B|D|I|Z|C|
     #   + + - - - - + +
     #
-    #   addressing    assembler    opc  bytes  cyles
-    #   --------------------------------------------
-    #   absolute,X    SBC oper,X    FD    3     4*
+    #   addressing absolute,X
 
     # Overflow Flag
     loc = ((mem.memory[PC + 2] << 8) | mem.memory[PC + 1]) + X
