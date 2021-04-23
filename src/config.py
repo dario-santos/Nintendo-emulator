@@ -1,1 +1,0 @@
-prg_start = 0x0
